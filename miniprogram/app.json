@@ -1,0 +1,8 @@
+{
+  "pages": ["pages/today/index", "pages/plan/index", "pages/records/index", "pages/me/index", "pages/profile/index", "pages/workout/index", "pages/meal/index", "pages/privacy/index", "pages/admin/index"],
+  "window": { "navigationBarTitleText": "练食日记", "navigationBarBackgroundColor": "#f6f7f2", "navigationBarTextStyle": "black", "backgroundColor": "#f6f7f2" },
+  "tabBar": { "color": "#869088", "selectedColor": "#234e3b", "backgroundColor": "#ffffff", "borderStyle": "white", "list": [{"pagePath":"pages/today/index","text":"今日"},{"pagePath":"pages/plan/index","text":"计划"},{"pagePath":"pages/records/index","text":"记录"},{"pagePath":"pages/me/index","text":"我的"}] },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

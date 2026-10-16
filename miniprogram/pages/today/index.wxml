@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="row"><text class="eyebrow">LIANSHI / DAILY JOURNAL</text><text class="tag">{{date}}</text></view>
+  <view class="title"><view>把好状态，</view><view>过成每一天。</view></view><view class="subtitle">吃得有安排，练得有节奏。</view>
+  <view wx:if="{{demo}}" class="notice" bindtap="profile">正在浏览示例计划。建立档案，开启你的第一周 →</view>
+  <view wx:if="{{day}}">
+    <view class="card hero"><view class="row"><text class="tag">TODAY'S MOVEMENT</text><text class="small">{{day.status}}</text></view><view class="hero-title">{{day.title}}</view><view class="muted">{{day.training ? day.minutes + ' 分钟 · 全身 · 无器械' : '按自己的节奏休息，轻活动可选'}}</view><view class="divider"></view><view class="small">{{day.reason}}</view><button class="primary space" bindtap="workout">{{day.training ? (day.status === '未开始' ? '开始今日训练 ↗' : '查看训练记录 ↗') : '查看恢复日 ↗'}}</button></view>
+    <view class="row section"><text>今日饮食</text><text class="muted">已记录 {{day.recorded}} / 3 餐</text></view>
+    <view class="card" style="margin-top:0"><view class="row"><view class="metric"><view class="muted">计划食物估算</view><text class="big number">{{day.nutrition.kcal}}</text><text class="small"> kcal</text></view><view class="metric"><view class="muted">已记录摄入</view><text class="big number">{{day.actual.kcal}}</text><text class="small"> kcal{{day.actual.unknown ? '+' : ''}}</text></view></view><view class="caption">示例餐食，非个人热量目标。未记录不代表未进食。</view></view>
+    <view class="card row" wx:for="{{day.meals}}" wx:key="id" bindtap="meal" data-id="{{item.id}}"><view class="icon">{{index === 0 ? '☀' : index === 1 ? '◒' : '☾'}}</view><view class="grow"><view class="row"><text>{{item.name}}</text><text class="tag">{{item.recorded ? '已记录' : item.time}}</text></view><view class="muted small">{{item.names}}</view><view class="small">约 {{item.nutrition.kcal}} kcal</view></view><text>›</text></view>
+    <view class="card summary" bindtap="plans"><view>一点点坚持，就是进步。</view><view class="muted">查看未来七天，给生活留出自己的时间 →</view></view>
+  </view><view class="footer-note">{{sync}} · 演示内容待专业审核</view>
+</view>

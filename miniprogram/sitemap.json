@@ -1,0 +1,1 @@
+{ "desc": "个人计划不被索引", "rules": [{ "action": "disallow", "page": "*" }] }

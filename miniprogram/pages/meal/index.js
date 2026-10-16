@@ -1,0 +1,17 @@
+const core=require('../../lib/core'),store=require('../../lib/store'),ui=require('../../lib/ui');
+Page({
+ data:{date:'',id:'',meal:null,items:[],nutrition:{},recorded:false,future:false,customName:'',customGrams:'',customKcal:'',dirty:false},
+ onLoad(o){this.setData({date:o.date||core.dateKey(),id:o.id||'breakfast'});this.load();},
+ load(){const state=store.read(),plan=state.plans[this.data.date];if(!plan)return;const meal=plan.meals.find(m=>m.id===this.data.id),record=state.meals[this.data.date+'|'+this.data.id];if(!meal)return;const items=core.clone(record?record.items:meal.items);this.setData({meal,items,recorded:!!record,nutrition:core.nutrition(items),future:this.data.date>core.dateKey(),dirty:false});},
+ recalc(items){this.setData({items,nutrition:core.nutrition(items),dirty:true});},
+ grams(e){const index=Number(e.currentTarget.dataset.index),items=this.data.items;items[index].grams=e.detail.value;this.recalc(items);},
+ replace(e){ui.run(async()=>{const index=Number(e.currentTarget.dataset.index),current=this.data.items[index],state=store.read(),choices=state.catalog.foods.filter(f=>f.category===current.category&&f.id!==current.id&&core.allowed(f,state.profile));if(!choices.length)throw Error('暂无符合忌口的同类替代食物');const result=await wx.showActionSheet({itemList:choices.slice(0,6).map(f=>f.name+' · '+f.basis)});const items=core.clone(this.data.items);items[index]=Object.assign(core.clone(choices[result.tapIndex]),{grams:current.grams});this.recalc(items);});},
+ remove(e){this.recalc(this.data.items.filter((_,i)=>i!==Number(e.currentTarget.dataset.index)));},
+ input(e){this.setData({[e.currentTarget.dataset.field]:e.detail.value});},
+ custom(){ui.run(()=>{const name=this.data.customName.trim(),grams=Number(this.data.customGrams),kcal=this.data.customKcal===''?null:Number(this.data.customKcal);if(!name||grams<=0||grams>3000||!Number.isFinite(grams))throw Error('请填写食物名称和 1—3000g 的份量');if(kcal!==null&&(!Number.isFinite(kcal)||kcal<0||kcal>1000))throw Error('每 100g 能量应为 0—1000 kcal');this.recalc(this.data.items.concat({id:'custom-'+Date.now(),name,category:'自定义',basis:'用户记录的可食部',grams,kcal,p:null,c:null,f:null,allergens:[],custom:true}));this.setData({customName:'',customGrams:'',customKcal:''});});},
+ validate(){if(!this.data.items.length)throw Error('请至少添加一种实际食物');return this.data.items.map(i=>{const grams=Number(i.grams);if(!Number.isFinite(grams)||grams<=0||grams>3000)throw Error('每项份量请填写 1—3000g');return Object.assign({},i,{grams});});},
+ save(){ui.run(()=>{if(this.data.future)throw Error('未来餐次暂不能记录实际摄入');const items=this.validate();store.update(state=>{state.meals[this.data.date+'|'+this.data.id]={date:this.data.date,mealId:this.data.id,items,recordedAt:Date.now()};return state;});this.load();ui.toast('已保存实际饮食');});},
+ planned(){this.recalc(core.clone(this.data.meal.items));this.save();},
+ clear(){ui.run(async()=>{const r=await wx.showModal({title:'删除这餐的实际记录？',content:'计划仍保留，实际摄入汇总将重新计算。'});if(r.confirm){store.update(state=>{delete state.meals[this.data.date+'|'+this.data.id];return state;});this.load();}});},
+ savePlan(){ui.run(async()=>{const items=this.validate(),state=store.read();if(this.data.date<core.dateKey()||this.data.recorded)throw Error('历史或已记录餐次不能修改计划');const result=await wx.showModal({title:'更新这餐计划？',content:'仅调整当前日期的此餐，实际饮食记录不受影响。'});if(!result.confirm)return;state.plans[this.data.date].meals.find(m=>m.id===this.data.id).items=items;store.write(state);this.load();ui.toast('餐次计划已更新');});}
+});
