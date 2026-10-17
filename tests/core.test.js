@@ -12,3 +12,15 @@ test('只有完整完成所有组才计为已完成，跳过不伪装完成',()=
 test('休息日不进入训练分母，餐次幂等及删除后重新汇总',()=>{const s=core.regenerate(core.empty(),profile,'2026-10-12'),date='2026-10-12';s.sessions[date]={status:'已完成'};s.meals[date+'|breakfast']={items:[]};s.meals[date+'|breakfast']={items:[]};let stats=core.stats(s,Object.keys(s.plans));assert.equal(stats.training,3);assert.equal(stats.trainingRate,33);assert.equal(stats.recorded,1);delete s.meals[date+'|breakfast'];assert.equal(core.stats(s,Object.keys(s.plans)).recorded,0);assert.equal(core.stats(core.empty(),[]).trainingRate,null);});
 test('营养随份量重算，未知项保持未知标识',()=>{assert.equal(core.nutrition([{...seed.foods[0],grams:200}]).kcal,740);assert.equal(core.nutrition([{grams:100,kcal:null}]).unknown,true);assert.equal(core.nutrition([{grams:100,kcal:100,p:null,c:null,f:null}]).unknown,true);});
 test('训练改期保留餐食并校验恢复间隔',()=>{const s=core.regenerate(core.empty(),{...profile,days:[1]},'2026-10-12');const next=core.moveTraining(s,'2026-10-12','2026-10-14','2026-10-12');assert.equal(next.plans['2026-10-12'].training,false);assert.equal(next.plans['2026-10-14'].training,true);assert.deepEqual(next.plans['2026-10-12'].meals,s.plans['2026-10-12'].meals);const busy=core.regenerate(core.empty(),profile,'2026-10-12');assert.throws(()=>core.moveTraining(busy,'2026-10-12','2026-10-13','2026-10-12'),/相邻/);});
+test('自填训练时间支持非预设整数，按时长分配训练量',()=>{
+  for(const minutes of [1,4,5,20,30,45,60,120,121,180,1440,10000]){
+    const day=core.generateDay({...profile,minutes},'2026-10-12');
+    assert.equal(day.minutes,minutes);
+    assert.ok(day.exercises.some(e=>e.phase==='热身'));
+    assert.ok(day.exercises.some(e=>e.phase==='放松'));
+  }
+  const short=core.generateDay({...profile,minutes:10},'2026-10-12');
+  const long=core.generateDay({...profile,minutes:45},'2026-10-12');
+  assert.ok(long.exercises.reduce((sum,e)=>sum+e.sets,0)>short.exercises.reduce((sum,e)=>sum+e.sets,0));
+  for(const minutes of ['',0,-1,NaN,Infinity,25.5,'abc',Number.MAX_SAFE_INTEGER+1])assert.throws(()=>core.validateProfile({...profile,minutes}),/正整数/);
+});

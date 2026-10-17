@@ -1,7 +1,54 @@
 {
-  "pages": ["pages/today/index", "pages/plan/index", "pages/records/index", "pages/me/index", "pages/profile/index", "pages/workout/index", "pages/meal/index", "pages/privacy/index", "pages/admin/index"],
-  "window": { "navigationBarTitleText": "练食日记", "navigationBarBackgroundColor": "#f6f7f2", "navigationBarTextStyle": "black", "backgroundColor": "#f6f7f2" },
-  "tabBar": { "color": "#869088", "selectedColor": "#234e3b", "backgroundColor": "#ffffff", "borderStyle": "white", "list": [{"pagePath":"pages/today/index","text":"今日"},{"pagePath":"pages/plan/index","text":"计划"},{"pagePath":"pages/records/index","text":"记录"},{"pagePath":"pages/me/index","text":"我的"}] },
+  "pages": [
+    "pages/today/index",
+    "pages/plan/index",
+    "pages/records/index",
+    "pages/me/index",
+    "pages/profile/index",
+    "pages/workout/index",
+    "pages/meal/index",
+    "pages/privacy/index",
+    "pages/admin/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "练食日记",
+    "navigationBarBackgroundColor": "#fff8ec",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f5f7"
+  },
+  "tabBar": {
+    "color": "#8b8b93",
+    "selectedColor": "#b85a28",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/today/index",
+        "text": "今日",
+        "iconPath": "assets/tabbar/today.png",
+        "selectedIconPath": "assets/tabbar/today-active.png"
+      },
+      {
+        "pagePath": "pages/plan/index",
+        "text": "计划",
+        "iconPath": "assets/tabbar/plan.png",
+        "selectedIconPath": "assets/tabbar/plan-active.png"
+      },
+      {
+        "pagePath": "pages/records/index",
+        "text": "记录",
+        "iconPath": "assets/tabbar/records.png",
+        "selectedIconPath": "assets/tabbar/records-active.png"
+      },
+      {
+        "pagePath": "pages/me/index",
+        "text": "我的",
+        "iconPath": "assets/tabbar/me.png",
+        "selectedIconPath": "assets/tabbar/me-active.png"
+      }
+    ],
+    "custom": true
+  },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"

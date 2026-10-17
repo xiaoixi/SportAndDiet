@@ -1,5 +1,5 @@
 const store=require('../../lib/store'),core=require('../../lib/core'),ui=require('../../lib/ui');
-Page({data:{profile:null,status:{},busy:false},onShow(){this.refresh();},refresh(){this.setData({profile:store.read().profile,status:store.status()});},profile:ui.profile,privacy(){ui.navigate('privacy');},admin(){ui.navigate('admin');},
+Page({data:{profile:null,status:{},busy:false},onShow(){ui.selectTab(this,3);this.refresh();},refresh(){this.setData({profile:store.read().profile,status:store.status()});},profile:ui.profile,privacy(){ui.navigate('privacy');},admin(){ui.navigate('admin');},
  async login(){if(this.data.busy)return;this.setData({busy:true});try{await store.connect();this.refresh();}catch(e){ui.toast(e.message);}finally{this.setData({busy:false});}},
  sync(){ui.run(async()=>{await store.sync();this.refresh();ui.toast(store.status().label);});},
  resolve(){ui.run(async()=>{const result=await wx.showActionSheet({itemList:['使用云端版本（替换本地）','保留本地版本（覆盖云端）']});const confirm=await wx.showModal({title:'确认解决冲突？',content:'此操作会替换所选一端的数据，请确认已保留需要的记录。'});if(confirm.confirm){await store.resolve(result.tapIndex===0);this.refresh();}});},

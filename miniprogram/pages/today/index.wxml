@@ -1,12 +1,34 @@
-<view class="page">
-  <view class="row"><text class="eyebrow">LIANSHI / DAILY JOURNAL</text><text class="tag">{{date}}</text></view>
-  <view class="title"><view>把好状态，</view><view>过成每一天。</view></view><view class="subtitle">吃得有安排，练得有节奏。</view>
-  <view wx:if="{{demo}}" class="notice" bindtap="profile">正在浏览示例计划。建立档案，开启你的第一周 →</view>
-  <view wx:if="{{day}}">
-    <view class="card hero"><view class="row"><text class="tag">TODAY'S MOVEMENT</text><text class="small">{{day.status}}</text></view><view class="hero-title">{{day.title}}</view><view class="muted">{{day.training ? day.minutes + ' 分钟 · 全身 · 无器械' : '按自己的节奏休息，轻活动可选'}}</view><view class="divider"></view><view class="small">{{day.reason}}</view><button class="primary space" bindtap="workout">{{day.training ? (day.status === '未开始' ? '开始今日训练 ↗' : '查看训练记录 ↗') : '查看恢复日 ↗'}}</button></view>
-    <view class="row section"><text>今日饮食</text><text class="muted">已记录 {{day.recorded}} / 3 餐</text></view>
-    <view class="card" style="margin-top:0"><view class="row"><view class="metric"><view class="muted">计划食物估算</view><text class="big number">{{day.nutrition.kcal}}</text><text class="small"> kcal</text></view><view class="metric"><view class="muted">已记录摄入</view><text class="big number">{{day.actual.kcal}}</text><text class="small"> kcal{{day.actual.unknown ? '+' : ''}}</text></view></view><view class="caption">示例餐食，非个人热量目标。未记录不代表未进食。</view></view>
-    <view class="card row" wx:for="{{day.meals}}" wx:key="id" bindtap="meal" data-id="{{item.id}}"><view class="icon">{{index === 0 ? '☀' : index === 1 ? '◒' : '☾'}}</view><view class="grow"><view class="row"><text>{{item.name}}</text><text class="tag">{{item.recorded ? '已记录' : item.time}}</text></view><view class="muted small">{{item.names}}</view><view class="small">约 {{item.nutrition.kcal}} kcal</view></view><text>›</text></view>
-    <view class="card summary" bindtap="plans"><view>一点点坚持，就是进步。</view><view class="muted">查看未来七天，给生活留出自己的时间 →</view></view>
-  </view><view class="footer-note">{{sync}} · 演示内容待专业审核</view>
+<view class="page tab-page today-page">
+  <view class="today-week" aria-label="切换查看日期"><view wx:for="{{week}}" wx:key="date" class="today-day {{item.training ? 'training' : 'rest'}} {{item.current ? 'current' : ''}} {{item.today ? 'is-today' : ''}}" bindtap="selectDate" data-date="{{item.date}}" aria-role="button" aria-label="{{item.date}}，{{item.training ? '训练日' : '休息日'}}{{item.today ? '，今天' : ''}}{{item.current ? '，已选择' : ''}}"><text class="today-day-badge">{{item.training ? '练' : '休'}}</text><text>{{item.label}}</text><text class="today-day-number">{{item.num}}</text></view></view>
+  <view wx:if="{{demo}}" class="notice" bindtap="profile">正在浏览示例。建立档案，开启你的第一周 →</view>
+  <view wx:if="{{day}}" class="card hero today-workout {{day.training ? 'training' : 'rest'}}"><view class="sun-halo" aria-hidden="true"></view><view class="row today-front"><text class="tag">{{day.training ? (isToday ? '今日训练' : '当日训练') : (isToday ? '今日恢复' : '当日恢复')}}</text><text class="workout-status">{{day.status}}</text></view><view class="hero-title today-front">{{day.training ? '给身体，充个电。' : '给状态，放个假。'}}</view><view class="muted today-front">{{day.training ? day.title + ' · ' + day.minutes + ' 分钟 · 无器械' : '安心休息，轻松活动也由你决定。'}}</view><button class="primary space today-front" bindtap="workout">{{day.training ? (day.status === '未开始' ? '开始训练' : '查看训练记录') : '查看恢复安排'}} <text class="button-arrow">↗</text></button></view>
+    <view wx:else class="card empty">这一天没有已保存的训练计划。</view>
+    <view class="row section"><text>每日体重</text><text class="muted">{{date}}</text></view>
+    <view class="card weight-card {{weightDirty ? 'unrecorded' : weightView.trend}}">
+      <view class="row weight-heading"><text class="weight-label">{{isToday ? '今天的体重' : '当日体重'}}</text><view class="weight-heading-meta"><text wx:if="{{weightView.planLabel}}" class="weight-plan" bindtap="profile" aria-role="button" aria-label="{{weightView.planLabel}}，点击修改目标">{{weightView.planLabel}}</text><text class="weight-status">{{weightDirty ? '待保存' : weightView.label}}</text></view></view>
+      <view class="weight-value-row">
+        <view class="weight-column weight-yesterday-column"><text class="weight-column-label">{{isToday ? '昨日体重' : '前一日体重'}}</text><view wx:if="{{weightView.yesterdayValue}}" class="weight-target-row"><text class="weight-history-value number">{{weightView.yesterdayValue}}</text><text class="weight-unit">kg</text></view><view wx:else class="weight-yesterday-empty">暂无记录</view></view>
+        <view class="weight-direction" aria-role="img" aria-label="从昨日体重到当日体重"><view class="weight-direction-line"></view></view>
+        <view class="weight-column"><text class="weight-column-label">当日体重</text><view class="weight-input-row"><view class="weight-input-wrap"><text class="weight-input-measure number {{weightInput ? '' : 'is-empty'}}" aria-hidden="true">{{weightInput || (isToday ? '填写体重' : '暂无记录')}}</text><input class="weight-input number" type="digit" value="{{weightInput}}" disabled="{{!isToday}}" placeholder="{{isToday ? '填写体重' : '暂无记录'}}" placeholder-class="weight-placeholder" bindinput="inputWeight" bindconfirm="saveWeight" confirm-type="done" aria-label="{{date}}的体重，千克"/></view><text class="weight-unit">kg</text></view></view>
+        <view class="weight-direction" aria-role="img" aria-label="从当日体重到目标体重"><view class="weight-direction-line"></view></view>
+        <view class="weight-column weight-target-column" bindtap="profile" aria-role="button" aria-label="目标体重，点击修改"><text class="weight-column-label">目标体重</text><view wx:if="{{weightView.canCompare}}" class="weight-target-row"><text class="weight-target-value number">{{weightView.targetValue}}</text><text class="weight-unit">kg</text></view><view wx:else class="weight-target-empty">设置目标 ›</view></view>
+        <view class="weight-mood"><image src="/assets/weight/{{weightDirty ? 'sun' : weightView.icon}}.svg" mode="aspectFit" aria-hidden="true"/></view>
+      </view>
+      <view wx:if="{{weightView.saved && !weightDirty}}" class="weight-feedback" aria-live="polite"><view class="weight-message">{{weightView.title}}</view><view class="weight-detail">{{weightView.detail}}</view></view>
+      <view class="weight-meta"><text>{{weightView.reference}}</text><text>{{weightView.canCompare ? (weightView.distance || '保存后查看与目标的距离') : weightView.targetLabel}}</text></view>
+      <button wx:if="{{isToday}}" class="primary weight-save" bindtap="saveWeight">{{weightView.saved && !weightDirty ? '更新今日体重' : '保存今日体重'}}</button>
+      <view wx:if="{{!isToday}}" class="weight-readonly">仅展示 {{date}} 的体重记录，只能编辑今天的体重。</view>
+    </view>
+    <view class="weight-note">单日波动不代表长期趋势，照顾好自己，慢慢来。</view>
+    <view class="row section"><text>好好吃饭</text><text class="muted">{{day ? '已记录 ' + day.recorded + ' / ' + day.meals.length + ' 餐' : '暂无计划'}}</text></view>
+    <view wx:if="{{day}}" class="card today-diet"><view class="row today-nutrition"><view><view class="muted">已记录摄入</view><text class="big number">{{day.actual.kcal}}</text><text class="small muted"> kcal{{day.actual.unknown ? ' + 未知部分' : ''}}</text></view><view class="meal-count"><text>{{day.recorded}} / {{day.meals.length}}</text><text class="meal-count-label">已记录餐次</text></view></view>
+      <view class="today-meal row" wx:for="{{day.meals}}" wx:key="id" bindtap="meal" data-id="{{item.id}}"><view class="icon">{{index === 0 ? '☀' : index === 1 ? '◒' : '☾'}}</view><view class="grow"><view>{{item.name}}</view><view class="muted meal-description">{{item.names}}</view></view><view class="meal-end {{item.recorded ? 'meal-recorded' : ''}}">{{item.recorded ? '已记录 ✓' : item.time}}</view></view>
+      <view class="caption diet-estimate">计划食物合计约 {{day.nutrition.kcal}} kcal，非个人能量目标。未记录不代表未进食。</view>
+    </view>
+    <view wx:else class="card empty">这一天没有已保存的饮食计划或记录。</view>
+</view>
+<view wx:for="{{weightEffects}}" wx:key="id" wx:for-item="effect" class="weight-celebration {{effect.type}}" aria-live="polite">
+  <view wx:if="{{effect.type === 'fireworks'}}" class="celebration-particles" aria-hidden="true"><view wx:for="{{effect.sparks}}" wx:key="id" class="celebration-spark" style="left:{{item.x}}%;top:{{item.y}}%;--spark-x:{{item.dx}}rpx;--spark-y:{{item.dy}}rpx;--spark-angle:{{item.angle}}deg;background:{{item.color}};animation-delay:{{item.delay}}ms;"></view></view>
+  <view wx:else class="celebration-particles" aria-hidden="true"><image wx:for="{{effect.flowers}}" wx:key="id" src="/assets/celebration/{{item.asset}}.svg" class="celebration-flower" mode="aspectFit" style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.size}}rpx;height:{{item.size}}rpx;--flower-x:{{item.dx}}rpx;--flower-angle:{{item.angle}}deg;animation-delay:{{item.delay}}ms;"/></view>
+  <view class="celebration-message"><view class="celebration-title">{{effect.title}}</view><view class="celebration-detail">今日体重已保存 · {{effect.detail}}</view></view>
 </view>

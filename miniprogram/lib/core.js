@@ -12,7 +12,8 @@ function validateProfile(p) {
   if (p.weight < 30 || p.weight > 250 || !Number.isFinite(Number(p.weight))) throw Error('请填写 30—250 kg 的有效体重');
   if (p.limitations && p.limitations.trim()) throw Error('存在身体限制或特殊情况时，请先获得专业指导，暂不生成通用计划');
   if (!['减脂','增肌','维持','养成习惯'].includes(p.goal)) throw Error('请选择目标');
-  if (![15,25,35].includes(Number(p.minutes))) throw Error('请选择单次训练时间');
+  if (['减脂','增肌'].includes(p.goal) && p.targetWeight != null && (!Number.isFinite(Number(p.targetWeight)) || Number(p.targetWeight) <= 0)) throw Error('请填写有效的目标体重');
+  if (!Number.isSafeInteger(Number(p.minutes)) || Number(p.minutes) <= 0) throw Error('请填写有效的正整数分钟数');
   if (!Array.isArray(p.days) || !p.days.length || p.days.length > 3 || p.days.some(d => !Number.isInteger(d) || d < 0 || d > 6)) throw Error('请选择每周 1—3 个训练日');
   if (new Set(p.days).size !== p.days.length || p.days.some(d => p.days.includes((d+1)%7))) throw Error('请在两次训练之间保留至少一天恢复时间');
   if (!Array.isArray(p.allergies) || typeof p.avoid !== 'string') throw Error('饮食限制格式不正确');
@@ -33,12 +34,13 @@ function nutrition(items) {
 function generateDay(profile, date, catalog = seed) {
   validateProfile(profile);
   const training = profile.days.includes(weekday(date));
-  const groups = profile.minutes === 15 ? ['warm','legs','push','cool'] : ['warm','legs','push','core','cool'];
+  const minutes = Number(profile.minutes);
+  const groups = minutes <= 15 ? ['warm','legs','push','cool'] : ['warm','legs','push','core','cool'];
   const exercises = groups.map(group => {
     const choices = catalog.exercises.filter(e => e.group === group);
     if (!choices.length) throw Error('没有匹配的训练模板，请保留原计划并调整内容库');
     const e = clone(choices[(weekday(date) + (profile.experience === '有基础' ? 1 : 0)) % choices.length]);
-    if (e.phase === '主训练') e.sets = profile.minutes === 35 ? 3 : 2;
+    if (e.phase === '主训练') e.sets = minutes < 10 ? 1 : Math.max(2, Math.min(10, Math.round(minutes / 12)));
     return e;
   });
   const specs = [['breakfast','早餐','08:00',[['主食',60],['蛋白质',100],['水果',150]]],['lunch','午餐','12:30',[['主食',180],['蛋白质',150],['蔬菜',200]]],['dinner','晚餐','18:30',[['主食',150],['蛋白质',150],['蔬菜',200]]]];
@@ -47,7 +49,7 @@ function generateDay(profile, date, catalog = seed) {
     if (!choices.length) throw Error('“'+category+'”没有符合忌口的食物，请调整内容库或手动记录饮食');
     return Object.assign(clone(choices[(weekday(date)+index)%choices.length]), {grams});
   })}));
-  return {date,version:catalog.version,goal:profile.goal,reason:`${profile.goal} · ${profile.experience} · 每周 ${profile.days.length} 次 · ${profile.place} · ${profile.equipment}`,training,title:training?'全身基础训练':'给身体一点恢复时间',minutes:profile.minutes,exercises:training?exercises:[],meals};
+  return {date,version:catalog.version,goal:profile.goal,reason:`${profile.goal} · ${profile.experience} · 每周 ${profile.days.length} 次`,training,title:training?'全身基础训练':'给身体一点恢复时间',minutes,exercises:training?exercises:[],meals};
 }
 function regenerate(state, profile, today=dateKey()) {
   validateProfile(profile);

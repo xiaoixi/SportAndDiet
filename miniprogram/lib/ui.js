@@ -6,4 +6,5 @@ function navigate(page,params={}){const query=Object.keys(params).map(k=>k+'='+e
 function profile(){navigate('profile');}
 function requireProfile(){if(!store.read().profile){toast('请先建立个人档案');profile();return false;}return true;}
 function dayView(state,date){const plan=state.plans[date];if(!plan)return null;const s=state.sessions[date];const meals=plan.meals.map(m=>Object.assign({},m,{nutrition:core.nutrition(m.items),recorded:!!state.meals[date+'|'+m.id],names:m.items.map(i=>i.name).join(' · ')}));const actual=core.nutrition(meals.reduce((arr,m)=>arr.concat(state.meals[date+'|'+m.id]?state.meals[date+'|'+m.id].items:[]),[]));return Object.assign({},plan,{meals,status:!plan.training?'休息日':s?s.status:'未开始',nutrition:core.nutrition(plan.meals.reduce((a,m)=>a.concat(m.items),[])),actual,recorded:meals.filter(m=>m.recorded).length});}
-module.exports={toast,run,navigate,profile,requireProfile,dayView};
+function selectTab(page,index){if(typeof page.getTabBar==='function'){const bar=page.getTabBar();if(bar)bar.setData({selected:index});}}
+module.exports={toast,run,navigate,profile,requireProfile,dayView,selectTab};

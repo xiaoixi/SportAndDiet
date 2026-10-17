@@ -10,7 +10,8 @@ if (!install) {
 }
 const root = path.resolve(__dirname, '..', 'miniprogram');
 const bin = path.join(install, 'resources', 'app.asar.unpacked', 'node_modules', 'wcc-exec');
-const pages = require('../miniprogram/app.json').pages;
+const config = require('../miniprogram/app.json');
+const pages = [...config.pages, ...(config.tabBar.custom ? ['custom-tab-bar/index'] : [])];
 let failed = false;
 function compile(executable, files, label) {
   const file = path.join(bin, executable);
